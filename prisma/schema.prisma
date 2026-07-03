@@ -95,13 +95,11 @@ model GenerationJob {
   completedAt   DateTime?
 
   user User  @relation(fields: [userId], references: [id], onDelete: Cascade)
-  song  Song?
 }
 
 model Song {
   id          String   @id @default(cuid())
   userId      String
-  jobId       String   @unique
   title       String
   prompt      String
   lyrics      String?
@@ -110,6 +108,5 @@ model Song {
   format      String   @default("mp3")
   createdAt   DateTime @default(now())
 
-  user User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  job  GenerationJob @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

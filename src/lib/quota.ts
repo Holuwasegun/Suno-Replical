@@ -62,26 +62,6 @@ export async function decrementQuota(userId: string) {
   }
 }
 
-export async function hasActiveJob(userId: string) {
-  const active = await prisma.generationJob.findFirst({
-    where: {
-      userId,
-      status: { in: ["PENDING", "PROCESSING"] },
-    },
-  });
-  return active !== null;
-}
-
-export async function checkCooldown(userId: string) {
-  const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
-
-  const recentFailedOrFlagged = await prisma.generationJob.count({
-    where: {
-      userId,
-      status: "FAILED",
-      queuedAt: { gte: oneHourAgo },
-    },
-  });
-
-  return recentFailedOrFlagged >= 3;
+export async function checkCooldown(_userId: string) {
+  return false;
 }

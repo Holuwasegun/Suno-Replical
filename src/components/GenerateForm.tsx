@@ -11,7 +11,7 @@ export function GenerateForm() {
   const [lyricsMode, setLyricsMode] = useState<"AI_GENERATED" | "USER_PROVIDED" | "INSTRUMENTAL">("AI_GENERATED");
   const [userLyrics, setUserLyrics] = useState("");
   const [targetLength, setTargetLength] = useState(60);
-  const [quota, setQuota] = useState({ remaining: 5, limit: 5, hasActiveJob: false });
+  const [quota, setQuota] = useState({ remaining: 5, limit: 5 });
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
 
@@ -44,11 +44,6 @@ export function GenerateForm() {
       return;
     }
 
-    if (quota.hasActiveJob) {
-      setError("You already have a generation in progress.");
-      return;
-    }
-
     setSubmitting(true);
 
     try {
@@ -71,14 +66,14 @@ export function GenerateForm() {
         return;
       }
 
-      router.push(`/jobs/${data.jobId}`);
+      router.push(`/songs/${data.songId}`);
     } catch {
       setError("Network error. Please try again.");
       setSubmitting(false);
     }
   }
 
-  const buttonDisabled = submitting || quota.remaining <= 0 || quota.hasActiveJob;
+  const buttonDisabled = submitting || quota.remaining <= 0;
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">

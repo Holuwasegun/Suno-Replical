@@ -46,10 +46,7 @@ export async function DELETE(
       return NextResponse.json({ error: "Song not found" }, { status: 404 });
     }
 
-    const jobId = song.jobId;
-
     await prisma.song.delete({ where: { id: params.id } });
-    await prisma.generationJob.delete({ where: { id: jobId } });
 
     return NextResponse.json({ message: "Song deleted" });
   } catch (error) {

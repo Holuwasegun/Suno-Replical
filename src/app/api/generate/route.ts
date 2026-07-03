@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getQuota, incrementQuota, decrementQuota, hasActiveJob, checkCooldown } from "@/lib/quota";
+import { getQuota, incrementQuota, checkCooldown } from "@/lib/quota";
 import { moderatePrompt } from "@/lib/moderation";
 import { getMusicProvider } from "@/lib/providers";
 import { getStorageProvider } from "@/lib/storage";
@@ -81,77 +81,26 @@ export async function POST(request: Request) {
       );
     }
 
-    if (await hasActiveJob(userId)) {
-      return NextResponse.json(
-        { error: "You already have a generation in progress. Please wait for it to complete." },
-        { status: 429 }
-      );
-    }
-
-    const job = await prisma.generationJob.create({
-      data: {
-        userId,
-        prompt: prompt.trim(),
-        lyricsMode,
-        userLyrics: lyricsMode === "USER_PROVIDED" ? userLyrics.trim() : null,
-        targetLength,
-        status: "PENDING",
-      },
-    });
-
-    incrementQuota(userId).catch((err) =>
-      console.error("Failed to increment quota:", err)
-    );
-
-    processGenerationJob(job.id).catch((err) =>
-      console.error("Generation job failed:", err)
-    );
-
-    return NextResponse.json({ jobId: job.id }, { status: 202 });
-  } catch (error) {
-    console.error("Generate error:", error);
-    return NextResponse.json(
-      { error: "An unexpected error occurred" },
-      { status: 500 }
-    );
-  }
-}
-
-async function processGenerationJob(jobId: string) {
-  try {
-    await prisma.generationJob.update({
-      where: { id: jobId },
-      data: { status: "PROCESSING", startedAt: new Date() },
-    });
-
-    const job = await prisma.generationJob.findUnique({
-      where: { id: jobId },
-    });
-
-    if (!job) {
-      throw new Error("Job not found");
-    }
+    await incrementQuota(userId);
 
     const provider = getMusicProvider();
-
     const result = await provider.generate({
-      prompt: job.prompt,
-      lyrics: job.userLyrics,
-      lyricsMode: job.lyricsMode as "USER_PROVIDED" | "AI_GENERATED" | "INSTRUMENTAL",
-      targetLength: job.targetLength,
+      prompt: prompt.trim(),
+      lyrics: lyricsMode === "USER_PROVIDED" ? userLyrics?.trim() : null,
+      lyricsMode,
+      targetLength,
     });
 
-    const key = `songs/${job.userId}/${jobId}.${result.format}`;
+    const key = `songs/${userId}/${crypto.randomUUID()}.${result.format}`;
     const storage = getStorageProvider();
     const contentType = result.format === "mp3" ? "audio/mpeg" : "audio/wav";
     const { url } = await storage.upload(result.audioBuffer, key, contentType);
 
-    await prisma.song.create({
+    const song = await prisma.song.create({
       data: {
-        userId: job.userId,
-        jobId: job.id,
+        userId,
         title: result.title,
-        prompt: job.prompt,
+        prompt: prompt.trim(),
         lyrics: result.lyrics,
         durationSec: result.durationSec,
         audioUrl: url,
@@ -159,27 +108,12 @@ async function processGenerationJob(jobId: string) {
       },
     });
 
-    await prisma.generationJob.update({
-      where: { id: jobId },
-      data: { status: "COMPLETE", completedAt: new Date() },
-    });
+    return NextResponse.json({ songId: song.id }, { status: 201 });
   } catch (error) {
-    console.error(`Job ${jobId} failed:`, error);
-
-    await prisma.generationJob.update({
-      where: { id: jobId },
-      data: {
-        status: "FAILED",
-        failureReason: error instanceof Error ? error.message : "Generation failed",
-        completedAt: new Date(),
-      },
-    });
-
-    const job = await prisma.generationJob.findUnique({
-      where: { id: jobId },
-    });
-    if (job) {
-      await decrementQuota(job.userId);
-    }
+    console.error("Generate error:", error);
+    return NextResponse.json(
+      { error: "An unexpected error occurred" },
+      { status: 500 }
+    );
   }
 }

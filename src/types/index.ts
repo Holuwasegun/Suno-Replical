@@ -9,7 +9,7 @@ export interface GenerateRequest {
 }
 
 export interface GenerateResponse {
-  jobId: string;
+  songId: string;
 }
 
 export interface JobStatusResponse {
@@ -23,7 +23,6 @@ export interface QuotaResponse {
   used: number;
   limit: number;
   remaining: number;
-  hasActiveJob: boolean;
 }
 
 export interface SongResponse {
