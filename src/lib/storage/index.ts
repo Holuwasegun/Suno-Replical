@@ -6,8 +6,10 @@ let provider: StorageProvider | null = null;
 
 export function getStorageProvider(): StorageProvider {
   if (!provider) {
-    const hasS3Creds = process.env.S3_ENDPOINT && process.env.S3_ACCESS_KEY_ID;
-    provider = hasS3Creds ? new S3StorageProvider() : new MockStorageProvider();
+    const endpoint = process.env.S3_ENDPOINT || "";
+    const keyId = process.env.S3_ACCESS_KEY_ID || "";
+    const hasRealS3 = endpoint && !endpoint.includes("localhost") && !endpoint.includes("127.0.0.1") && keyId;
+    provider = hasRealS3 ? new S3StorageProvider() : new MockStorageProvider();
   }
   return provider;
 }
