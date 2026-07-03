@@ -12,7 +12,7 @@ export async function GET(
     return NextResponse.json({ error: "Audio not found" }, { status: 404 });
   }
 
-  return new NextResponse(audio.buffer, {
+  return new NextResponse(new Uint8Array(audio.buffer), {
     headers: {
       "Content-Type": audio.contentType,
       "Cache-Control": "public, max-age=31536000, immutable",
