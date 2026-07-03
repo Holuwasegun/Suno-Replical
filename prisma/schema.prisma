@@ -1,0 +1,115 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String?
+  name         String?
+  image        String?
+  createdAt    DateTime @default(now())
+
+  accounts        Account[]
+  sessions        Session[]
+  quotaWindows    QuotaWindow[]
+  generationJobs  GenerationJob[]
+  songs           Song[]
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model QuotaWindow {
+  id              String   @id @default(cuid())
+  userId          String
+  generationsUsed Int      @default(0)
+  windowStart     DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, windowStart])
+}
+
+enum LyricsMode {
+  USER_PROVIDED
+  AI_GENERATED
+  INSTRUMENTAL
+}
+
+enum JobStatus {
+  PENDING
+  PROCESSING
+  COMPLETE
+  FAILED
+}
+
+model GenerationJob {
+  id            String    @id @default(cuid())
+  userId        String
+  prompt        String
+  lyricsMode    LyricsMode
+  userLyrics    String?
+  targetLength  Int
+  status        JobStatus @default(PENDING)
+  failureReason String?
+  queuedAt      DateTime  @default(now())
+  startedAt     DateTime?
+  completedAt   DateTime?
+
+  user User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  song  Song?
+}
+
+model Song {
+  id          String   @id @default(cuid())
+  userId      String
+  jobId       String   @unique
+  title       String
+  prompt      String
+  lyrics      String?
+  durationSec Int
+  audioUrl    String
+  format      String   @default("mp3")
+  createdAt   DateTime @default(now())
+
+  user User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  job  GenerationJob @relation(fields: [jobId], references: [id], onDelete: Cascade)
+}
