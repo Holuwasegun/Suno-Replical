@@ -2,6 +2,8 @@ import { prisma } from "@/lib/prisma";
 import { getAnonymousUserId } from "@/lib/anonymous-user";
 import { LibraryClient } from "./LibraryClient";
 
+export const dynamic = "force-dynamic";
+
 export default async function LibraryPage() {
   const userId = await getAnonymousUserId();
 

@@ -6,6 +6,8 @@ import { getMusicProvider } from "@/lib/providers";
 import { getStorageProvider } from "@/lib/storage";
 import { getAnonymousUserId } from "@/lib/anonymous-user";
 
+export const dynamic = "force-dynamic";
+
 export async function POST(request: Request) {
   try {
     const userId = await getAnonymousUserId();

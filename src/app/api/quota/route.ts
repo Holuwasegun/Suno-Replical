@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { getQuota, hasActiveJob } from "@/lib/quota";
 import { getAnonymousUserId } from "@/lib/anonymous-user";
 
+export const dynamic = "force-dynamic";
+
 export async function GET() {
   try {
     const userId = await getAnonymousUserId();
