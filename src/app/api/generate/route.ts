@@ -111,8 +111,9 @@ export async function POST(request: Request) {
     return NextResponse.json({ songId: song.id }, { status: 201 });
   } catch (error) {
     console.error("Generate error:", error);
+    const message = error instanceof Error ? error.message : "An unexpected error occurred";
     return NextResponse.json(
-      { error: "An unexpected error occurred" },
+      { error: message },
       { status: 500 }
     );
   }
