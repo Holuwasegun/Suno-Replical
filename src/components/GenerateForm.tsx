@@ -2,12 +2,10 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { useSession } from "next-auth/react";
 import { LyricsEditor } from "./LyricsEditor";
 
 export function GenerateForm() {
   const router = useRouter();
-  const { data: session } = useSession();
 
   const [prompt, setPrompt] = useState("");
   const [lyricsMode, setLyricsMode] = useState<"AI_GENERATED" | "USER_PROVIDED" | "INSTRUMENTAL">("AI_GENERATED");

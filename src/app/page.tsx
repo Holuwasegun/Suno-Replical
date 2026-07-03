@@ -13,20 +13,12 @@ export default function LandingPage() {
         </p>
       </div>
 
-      <div className="mb-12 flex gap-4">
-        <Link
-          href="/signup"
-          className="rounded-md bg-green-600 px-6 py-3 text-base font-medium text-white transition hover:bg-green-500"
-        >
-          Get started free
-        </Link>
-        <Link
-          href="/login"
-          className="rounded-md border border-zinc-700 px-6 py-3 text-base font-medium text-zinc-300 transition hover:bg-zinc-900"
-        >
-          Sign in
-        </Link>
-      </div>
+      <Link
+        href="/generate"
+        className="mb-16 rounded-md bg-green-600 px-6 py-3 text-base font-medium text-white transition hover:bg-green-500"
+      >
+        Start generating
+      </Link>
 
       <div className="mb-16 grid gap-4 sm:grid-cols-3">
         {[

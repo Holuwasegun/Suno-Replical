@@ -1,6 +1,3 @@
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
-import { redirect } from "next/navigation";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { SongDetailClient } from "./SongDetailClient";
@@ -10,16 +7,9 @@ interface PageProps {
 }
 
 export default async function SongDetailPage({ params }: PageProps) {
-  const session = await getServerSession(authOptions);
-  if (!session?.user?.id) {
-    redirect("/login");
-  }
-
-  const userId = (session.user as { id: string }).id;
-
   const song = await prisma.song.findUnique({ where: { id: params.id } });
 
-  if (!song || song.userId !== userId) {
+  if (!song) {
     notFound();
   }
 

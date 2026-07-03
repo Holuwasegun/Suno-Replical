@@ -1,31 +1,17 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { getStorageProvider } from "@/lib/storage";
 
 export async function GET(
   _request: Request,
   { params }: { params: { id: string } }
 ) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const userId = (session.user as { id: string }).id;
-
     const song = await prisma.song.findUnique({
       where: { id: params.id },
     });
 
     if (!song) {
       return NextResponse.json({ error: "Song not found" }, { status: 404 });
-    }
-
-    if (song.userId !== userId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
 
     return NextResponse.json({
@@ -52,24 +38,12 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const userId = (session.user as { id: string }).id;
-
     const song = await prisma.song.findUnique({
       where: { id: params.id },
-      include: { job: true },
     });
 
     if (!song) {
       return NextResponse.json({ error: "Song not found" }, { status: 404 });
-    }
-
-    if (song.userId !== userId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
 
     const jobId = song.jobId;

@@ -1,16 +1,9 @@
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
-import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
+import { getAnonymousUserId } from "@/lib/anonymous-user";
 import { LibraryClient } from "./LibraryClient";
 
 export default async function LibraryPage() {
-  const session = await getServerSession(authOptions);
-  if (!session?.user?.id) {
-    redirect("/login");
-  }
-
-  const userId = (session.user as { id: string }).id;
+  const userId = await getAnonymousUserId();
 
   const songs = await prisma.song.findMany({
     where: { userId },
