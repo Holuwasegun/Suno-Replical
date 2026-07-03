@@ -8,7 +8,6 @@ export async function GET(
   try {
     const job = await prisma.generationJob.findUnique({
       where: { id: params.id },
-      include: { song: { select: { id: true } } },
     });
 
     if (!job) {
@@ -19,7 +18,6 @@ export async function GET(
       id: job.id,
       status: job.status,
       failureReason: job.failureReason,
-      songId: job.song?.id,
     });
   } catch (error) {
     console.error("Job status error:", error);
